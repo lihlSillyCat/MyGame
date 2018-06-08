@@ -1,5 +1,8 @@
 # 系统简介
 
+服务器基于skynet框架，github : https://github.com/cloudwu/skynet.git
+当将服务器工程 git clone 到本地时，需要在src/server/skynet目录中将skynet clone到本地，编译。
+
 ## access 接入服务器
 
 1. 单节点，客户端保存该节点的访问地址，直接连接该节点
