@@ -1,1 +1,4 @@
-# git push directory
+# 客户端系统说明
+
+1. 客户端采用 Unity3D 引擎开发，开发语言为 C# 和 Lua。
+2. 以后补充······
