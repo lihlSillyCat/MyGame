@@ -31,9 +31,9 @@ Success:
  *  
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -168,6 +168,10 @@ public class LoginNetworkDriver {
         {
             socket_.Shutdown(SocketShutdown.Both);
         }
+		recv_thread_.Join ();
+		send_thread_.Join ();
+
+		AddViewMsg ("network shutdown");
     }
 
     //连接回调
@@ -177,15 +181,15 @@ public class LoginNetworkDriver {
         {
             socket_.EndConnect(iar);
 
+			notify_connect_ = true;
+			AddViewMsg("Connect server succeed. Start recv and send thread.");
+
             recv_thread_ = new Thread(new ThreadStart(RecvThreadMain));
             send_thread_ = new Thread(new ThreadStart(SendThreadMain));
             recv_thread_run_ = true;
             send_thread_run_ = true;
             recv_thread_.Start();
             send_thread_.Start();
-
-            notify_connect_ = true;
-            AddViewMsg("Connect server succeed. Start recv and send thread.");
         }
         catch (SocketException)
         {
@@ -207,7 +211,7 @@ public class LoginNetworkDriver {
             //提取一行
             for (int i = buf_len; i < buf_len + recv_len; i++)
             {
-                if (buf[i] == '\0')
+                if (buf[i] == '\n')
                 {
                     //完整消息则入队
                     string line = System.Text.Encoding.Default.GetString(buf, 0, i);
@@ -238,7 +242,7 @@ public class LoginNetworkDriver {
     void SendThreadMain()
     {
         SocketError error;
-        byte[] buf = new byte[kMaxNetSize], buftemp;
+        //byte[] buf = new byte[kMaxNetSize], buftemp;
         string strbuf = "";
         bool has_msg = false;
         while (send_thread_run_)
@@ -256,10 +260,8 @@ public class LoginNetworkDriver {
                 Thread.Sleep(10);
                 continue;
             }
-            buftemp = System.Text.Encoding.Default.GetBytes(strbuf);
-            Buffer.BlockCopy(buf, 0, buftemp, 0, buftemp.Length);
-            buf[buftemp.Length] = 0;
-            socket_.Send(buf, 0, buftemp.Length + 1, SocketFlags.None, out error);
+			byte[] buftemp = System.Text.Encoding.Default.GetBytes(strbuf + '\n');
+			socket_.Send(buftemp, 0, buftemp.Length, SocketFlags.None, out error);
 
             if (error != SocketError.Success)
             {

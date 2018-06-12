@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class login : MonoBehaviour, ILoginNetworkHandler {
+public class Login : MonoBehaviour, ILoginNetworkHandler {
 
 	public Text ip_;
 	public Text port_;
@@ -21,7 +21,8 @@ public class login : MonoBehaviour, ILoginNetworkHandler {
     //接收数据
     public void OnRecvMsg(string msg)
     {
-        msg_.text = "recv:" + msg;
+		Debug.Log("recv net msg : " + msg);
+		msg_.text = "recv net msg : " + msg;
     }
 
     //连接回调
@@ -44,12 +45,12 @@ public class login : MonoBehaviour, ILoginNetworkHandler {
 
 	void OnDestroy()
 	{
+		netdriver_.Shutdown ();
 	}
 
 	public void OnBtnDisconnect()
 	{
         netdriver_.Shutdown ();
-
 	}
 
 	//demo for login
