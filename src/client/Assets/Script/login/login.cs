@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class start : MonoBehaviour {
+public class login : MonoBehaviour, ILoginNetworkHandler {
 
 	public Text ip_;
 	public Text port_;
@@ -11,19 +11,35 @@ public class start : MonoBehaviour {
 	public Text psd_;
 	public Text msg_;
 
-	private netdemo net_ = new netdemo();
+    LoginNetworkDriver netdriver_ = null;
 
-	// Use this for initialization
-	void Start () {
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		string str = net_.GetViewMsg ();
-		if (!string.IsNullOrEmpty (str)) {
-			Debug.Log (str);
-			msg_.text = str;
-		}
+    // Use this for initialization
+    void Start () {
+        netdriver_ = new LoginNetworkDriver(this);
+    }
+
+    //接收数据
+    public void OnRecvMsg(string msg)
+    {
+        msg_.text = "recv:" + msg;
+    }
+
+    //连接回调
+    public void OnConnected(bool success, string msg)
+    {
+
+    }
+
+    //模块消息回调
+    public void OnRunningMsg(string msg)
+    {
+        Debug.Log(msg);
+        msg_.text = msg;
+    }
+
+    // Update is called once per frame
+    void Update () {
+        netdriver_.Update();
 	}
 
 	void OnDestroy()
@@ -32,7 +48,7 @@ public class start : MonoBehaviour {
 
 	public void OnBtnDisconnect()
 	{
-		net_.Shutdown ();
+        netdriver_.Shutdown ();
 
 	}
 
@@ -60,8 +76,8 @@ public class start : MonoBehaviour {
 			return;
 		}
 
-		//connect server
-		net_.ConnectServer(ip_.text, System.Convert.ToInt32(port_.text));
+        //connect server
+        netdriver_.ConnectServer(ip_.text, System.Convert.ToInt32(port_.text));
 
 		//do shakehands
 
