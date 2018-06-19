@@ -1,0 +1,25 @@
+if jit then
+	jit.off()
+	jit.flush()
+end
+
+require('mobdebug').start('localhost')
+require('mobdebug').coro() --debug coroutine
+
+local print = print
+local require = require
+local os = os
+
+module("init")
+
+print("lua init")
+
+local function Startup()
+	
+end
+
+
+
+
+
+
