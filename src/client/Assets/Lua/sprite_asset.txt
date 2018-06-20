@@ -1,0 +1,58 @@
+local require = require
+local print = print
+local pairs = pairs
+local assert = assert
+local table = table
+
+local IOSystem = CS.War.Script.IOSystem
+
+module("sprite_asset")
+
+--sealed class
+local SpriteAsset = {}
+
+function SpriteAsset:ctor(selfType, spriteAssetPath)
+	self.assetPath = spriteAssetPath
+	self.sprites = nil
+	self.isDisposed = false
+	
+	self.callbacks = {}
+	
+	IOSystem.LoadAssetAsync(spriteAssetPath, nil, function (sprites)
+		if self.isDisposed then
+			IOSystem.UnloadAssetBundle(spriteAssetPath)
+			return
+		end
+		self.sprites = sprites
+		
+		for k, v in pairs(self.callbacks) do
+			local sprite = self.sprites:GetSpriteByName(v.name)
+			v.callback(sprite)
+		end
+		
+		self.callbacks = {}
+	end)
+end
+
+function SpriteAsset:GetSprite(name, callback)
+	assert(callback ~= nil, "SpriteAsset:GetSprite callback parameter can't be nil!")
+	if self.sprites then
+		local sprite = self.sprites:GetSpriteByName(name)
+		if callback ~= nil then
+			callback(sprite)
+		end
+	else
+		table.insert(self.callbacks, {name = name, callback = callback})
+	end
+end
+
+function SpriteAsset:Dispose()
+	self.isDisposed = true
+	self.sprites = nil
+	self.callbacks = {}
+	IOSystem.UnloadAssetBundle(self.assetPath, true)
+end
+
+local class = require "class"
+local object = require "object"
+CSpriteAsset = class(object, nil, SpriteAsset)

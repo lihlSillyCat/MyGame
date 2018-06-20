@@ -1,0 +1,84 @@
+local require = require
+local pairs = pairs
+local error = error
+local type = type
+local setmetatable = setmetatable
+local print = print
+
+module("event")
+
+local events = {}
+
+-- accepts any amount and type of arguments after the event name
+-- NOTE: triggered events have no guaranteed order in which callback objects are called
+function Trigger(eventname, ...)
+	local eventlist = events[eventname] or {}
+	
+	for obj, callback in pairs(eventlist) do
+		if type(obj) == "function" then
+			obj(eventname, ...)
+		elseif obj[eventname] then
+			obj[eventname](obj, eventname, ...)
+		elseif obj.OnEvent then
+			obj:OnEvent(eventname, ...)
+		end
+	end
+end
+
+function Register(eventname, obj)
+	if not obj then
+		return error("Event.Register error: nil callback object", 2)
+	end
+	
+	if type(eventname) == "string" then
+		local eventlist = events[eventname]
+		
+		if not eventlist then
+			eventlist = {}
+			setmetatable(eventlist, {__mode="k"}) -- weak keys so garbage collector can clean up properly
+		end
+		
+		if type(obj) ~= "function" and type(obj) ~= "table" then
+			return error("Event.Register error: callback object is not a table or function", 2)
+		end
+		
+		eventlist[obj] = true
+		events[eventname] = eventlist
+	end
+	
+	return obj
+end
+
+
+function Unregister(eventname, obj)
+	if not obj then
+		return error("Event.Unregister error: nil callback object", 2)
+	end
+	
+	local eventlist = events[eventname]
+	if eventlist and eventlist[obj] then
+		eventlist[obj] = nil
+	end
+end
+
+-- returns array of event names registered to an object
+function LookUp(obj)
+	if type(obj) ~= "table" and type(obj) ~= "function" then
+		return error("Event.LookUp error: callback object is not a table or function", 2)
+	end
+	
+	local registeredevents = {}
+	
+	for eventname, eventlist in pairs(events) do
+		for _obj, callback in pairs(eventlist) do
+			if obj == _obj then
+				table.insert(registeredevents, eventname)
+				break
+			end
+		end
+	end
+	
+	return registeredevents	
+end
+
+setmetatable(_M, {__index = require "event_define"})

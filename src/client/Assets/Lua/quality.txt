@@ -1,0 +1,54 @@
+local require = require
+local print = print
+local tonumber = tonumber
+local string = string
+
+local Debug = CS.UnityEngine.Debug
+local SystemInfo = CS.UnityEngine.SystemInfo
+local Screen = CS.UnityEngine.Screen
+local QualitySettings = CS.UnityEngine.QualitySettings
+local AkSoundEngineLua = CS.War.Script.AkSoundEngineLua
+
+module("quality")
+
+function SetLevel(level)
+	local config_datas = require "config_datas"
+	print("当前机型：", SystemInfo.deviceModel)
+	local qualityInfo = config_datas.GetDataByName("quality_pb", "Quality", SystemInfo.deviceModel)
+	if qualityInfo ~= nil then
+		if level == nil then
+			level = qualityInfo.level
+		end
+		
+		local quality = nil
+		if level == 0 then
+			quality = qualityInfo.low
+		elseif level == 1 then
+			quality = qualityInfo.midium
+		elseif level == 2 then
+			quality = qualityInfo.high
+		end
+		
+		if quality ~= nil then
+			Debug.Log(string.format("机型适配：%d,%dx%d,%d", level, quality.width, quality.height, quality.maxVoices))
+			QualitySettings.SetQualityLevel(level)
+			Screen.SetResolution(quality.width, quality.height, true)
+			AkSoundEngineLua.SetMaxNumVoicesLimit(quality.maxVoices)
+		end
+	elseif level ~= nil then
+		Debug.Log(string.format("机型适配：%d", level))
+		QualitySettings.SetQualityLevel(level)
+	end
+end
+
+local ui_setting_attr_enum = require "ui_setting_attr_enum"
+local ui_setting_data = require "ui_setting_data"
+local EnSubModel = ui_setting_attr_enum.EnSubModel
+local EnBaseAttrKey = ui_setting_attr_enum.EnBaseAttrKey
+local level = nil
+local value = ui_setting_data.GetAttrData(EnSubModel.En_Model_Base, EnBaseAttrKey.En_AttrKey_PictureQuality)
+if value ~= nil and value ~= "-1" then
+	level = tonumber(value) - 1
+end
+
+SetLevel(level)

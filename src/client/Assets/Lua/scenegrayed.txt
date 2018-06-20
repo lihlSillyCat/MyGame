@@ -1,0 +1,26 @@
+local print = print
+local require = require
+local class = require "class"
+local event = require "event"
+local game = require "game"
+local base_object = require "base_object"
+
+local Vector3 = CS.UnityEngine.Vector3
+local Camera = CS.UnityEngine.Camera
+local GameObject = CS.UnityEngine.GameObject
+local CameraControllerType = typeof(CS.War.Controller.CameraController)
+local PostProcessingBehaviourType = typeof(CS.UnityEngine.PostProcessing.PostProcessingBehaviour)
+local Utility = CS.War.Script.Utility
+local IOSystem = CS.War.Script.IOSystem
+
+module("scenegrayed")
+
+function GrayStart()
+    local postProcessing = Camera.main.gameObject:GetComponent(PostProcessingBehaviourType)
+    postProcessing.profile.colorGrading.enabled = true
+end
+
+function GrayEnd()
+    local postProcessing = Camera.main.gameObject:GetComponent(PostProcessingBehaviourType)
+    postProcessing.profile.colorGrading.enabled = false
+end

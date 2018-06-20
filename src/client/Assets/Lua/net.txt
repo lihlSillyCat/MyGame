@@ -1,0 +1,183 @@
+local require = require
+local pairs = pairs
+local string = string
+local print = print
+local setmetatable = setmetatable
+local typeof = typeof
+local event = require "event"
+
+local GameObject = CS.UnityEngine.GameObject
+
+local Net = CS.War.Script.Net
+local BKDRHash = CS.War.Script.Utility.BKDRHash
+local log = require "log"
+
+--C#收到网络包直接调用
+function OnMessageHandle(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+	--print("OnMessageRecv1 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
+	local net_route = require "net_route"
+	net_route.OnMessage(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+	event.Trigger(event.NET_MESSAGE_RECIVE_NTF)
+    --print("OnMessageRecv2 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
+end
+
+local OnMessageHandleFunc = OnMessageHandle
+
+module("net")
+
+local netObj = GameObject("Net")
+local netInstance = netObj:AddComponent(typeof(Net))
+
+--当前的ip和当前的端口
+local net_ip = ""
+local net_port = ""
+local net_connect_type = 0
+
+local NET_FUNCTION_NAME = {
+	["gateway_pb.TMSG_GATEWAY_PING_REQ"] = {"net_gateway", "S2CPing"},
+	["gateway_pb.TMSG_GATEWAY_PING_RSP"] = {},
+}
+
+local NameToIdHashMap = {}
+local packetMap = {}
+local mbConnectCompleted = false
+
+local function __InitNetPacketMap()
+	for k, v in pairs(NET_FUNCTION_NAME) do
+		local moduleName, className = string.match(k, "([^.]+).([^.]+)")
+		local m = require(moduleName)
+		local class = m[className]
+		if class == nil then		print("class not found: "..className.." in module: "..moduleName)
+		end
+		local classFullName = class.FullName()
+	
+		local nameHash = BKDRHash(string.sub(classFullName, 2))
+		if packetMap[nameHash] ~= nil then
+			log.Error(class.FullName().." hash conflict with "..packetMap[nameHash][1].FullName())
+		end
+		NameToIdHashMap[classFullName] = nameHash
+
+		local handleFunc = nil
+		if #v == 2  then
+			handleFunc = require(v[1])[v[2]]
+			if handleFunc == nil  then
+				log.Error(v[1].." function ["..v[2].."] not found!")
+			end
+		end
+		packetMap[nameHash] = {class, handleFunc}
+	end
+end
+
+function OnMessageReceive(id, msg)
+	local packetInfo = packetMap[id]
+	if packetInfo == nil then
+		log.Error("OnMessageReceive ["..id.."] function not found!")
+		return
+	end
+
+	local pb = packetInfo[1]()
+	--print("OnMessageReceive", pb.FullName())
+	pb:ParseFromString(msg)
+	packetInfo[2](pb)
+end
+
+function OnMessageRecv(packetId, srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+    OnMessageHandleFunc(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+		
+	--[[
+    --print("OnMessageRecv1 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
+	local net_route = require "net_route"
+	net_route.OnMessage(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+	event.Trigger(event.NET_MESSAGE_RECIVE_NTF)
+    --print("OnMessageRecv2 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
+	]]
+end
+
+function SendMessage(srcEndPoint, dstEndPoint, keyModule, keyAction, pbInstance,bFilter)
+	
+	if pbInstance==nil then
+		log.Error("netInstance:SendMessage pbInstance==nil ! keyModule:"..keyModule.."keyAction"..keyAction)
+		return
+	end
+	
+	if bFilter == nil or bFilter == false then
+		if mbConnectCompleted == false then
+			return
+		end
+	end	
+
+    --print("SendMessage1 module="..keyModule..", action= "..keyAction)
+	netInstance:SendMessage(srcEndPoint, dstEndPoint, keyModule, keyAction, pbInstance:SerializeToString())
+    --print("SendMessage2 module="..keyModule..", action= "..keyAction)
+end
+
+function Connect(ip, port, connect_type,callback)
+	if IsConnected() then
+		Disconnect()
+	end
+	
+	event.Trigger(event.NET_CONNECT_EVENT)
+	
+	mbConnectCompleted = false
+	
+	
+	net_ip = ip
+	net_port = port
+	net_connect_type = connect_type
+	
+
+	netInstance:Connect(net_ip, net_port,net_connect_type,callback)  --0后面填的是udp端口
+end
+
+function Disconnect()
+	event.Trigger(event.NET_DISCONNECT_EVENT)
+	netInstance:Disconnect()
+	mbConnectCompleted = false
+end
+
+function ConnectSuccess()
+	mbConnectCompleted = true
+	event.Trigger(event.NET_HANDSHAKE_SUCCESS_EVENT)
+end
+
+function IsConnected()
+	return netInstance.isConnected
+end
+
+--返回当前的登陆类型
+function GetConnectType()
+	return net_connect_type
+end
+
+function GetRecvMessageCount()
+	if netInstance then
+		return netInstance.recvMessageCount
+	end
+	return 0
+end
+
+--取得IP
+function GetIP()
+	return net_ip
+end
+
+--取得端口
+function GetPort()
+	return net_port
+end
+
+
+
+function DispatchMessage(packetMap, msg)
+	local pbClass, func = packetMap[1], packetMap[2]
+	if func ~= nil then
+		local pbMsg = pbClass()
+		pbMsg:ParseFromString(msg)
+		func(pbMsg)
+	end
+end
+
+__InitNetPacketMap()
+netInstance:RegistMessageFunction("OnMessageHandle")
+
+setmetatable(_M, {__index = require "net_define"})

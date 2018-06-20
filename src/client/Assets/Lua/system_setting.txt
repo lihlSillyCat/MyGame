@@ -1,0 +1,103 @@
+local print = print
+local require = require
+local tonumber = tonumber
+local ui_setting_attr_enum = require "ui_setting_attr_enum"
+local EnSubModel = ui_setting_attr_enum.EnSubModel
+local EnBaseAttrKey = ui_setting_attr_enum.EnBaseAttrKey
+local EnOperatorAttrKey = ui_setting_attr_enum.EnOperatorAttrKey
+local EnGyroscopeAttrValue = ui_setting_attr_enum.EnGyroscopeAttrValue
+
+module("system_setting")
+
+local prop = require "prop"
+
+instance = nil
+local SystemSetting = {}
+
+local environmentTable = 
+{
+	GyroScopeValue			= EnGyroscopeAttrValue.En_Value_Off,
+	NoOpenLensValue			= 50,  --不开镜
+	RedPointValue			= 50,  --红点
+	HolographicValue		= 50,  --全息
+	TwoTimesLensValue		= 50,  --两倍镜
+	FourTimesLensValue		= 50,  --四倍镜
+	EightTimesLensValue		= 50,  --八倍镜
+	FifteenTimesLensValue	= 50,  --十五倍镜
+	FreeViewValue			= 50,  --自由视角
+	FiringValue				= 50,  --开火
+	ValueChange             = false,   --这个只是告诉别人这个表的数据是否发生了变化，没有实际意义，但是不能去掉 
+}
+
+function SystemSetting:ctor(selfType)
+	self:_Init()
+end
+
+function SystemSetting:_Init()
+	self.environment 	= prop.CProp(environmentTable)
+	local ui_setting_data = require "ui_setting_data"
+	self.environment.GyroScopeValue			= ui_setting_data.GetAttrData(EnSubModel.En_Model_Base, EnBaseAttrKey.En_AttrKey_Gyroscope)
+	self.environment.NoOpenLensValue		= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_NotOpenLens))
+	self.environment.RedPointValue			= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_RedPoint))
+	self.environment.HolographicValue		= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Holographic))
+	self.environment.TwoTimesLensValue		= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_2TimesLens))
+	self.environment.FourTimesLensValue		= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_4TimesLens))
+	self.environment.EightTimesLensValue	= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_8TimesLens))
+	self.environment.FifteenTimesLensValue	= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_15TimesLens))
+	self.environment.FreeViewValue			= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_FreeView))
+	self.environment.FiringValue			= tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Firing))
+end
+
+function SystemSetting:Dispose()
+    --[[ 在设置界面的时候已经将数据保存了，所以这里不需要处理了
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Base, EnBaseAttrKey.En_AttrKey_Gyroscope, self.environment.GyroScopeValue)
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_NotOpenLens, tostring(self.environment.NoOpenLensValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_RedPoint, tostring(self.environment.RedPointValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Holographic, tostring(self.environment.HolographicValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_2TimesLens, tostring(self.environment.TwoTimesLensValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_4TimesLens, tostring(self.environment.FourTimesLensValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_8TimesLens, tostring(self.environment.EightTimesLensValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_15TimesLens,tostring(self.environment.FifteenTimesLensValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_FreeView, tostring(self.environment.FreeViewValue))
+	ui_setting_data.SetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Firing, tostring(self.environment.FiringValue))
+    ]]
+	instance = nil
+end
+
+function OnSettingChange(enAttrKey)
+	if instance ~= nil then
+		local ui_setting_data = require "ui_setting_data"
+		if enAttrKey == EnBaseAttrKey.En_AttrKey_Gyroscope then
+			instance.environment.GyroScopeValue	= ui_setting_data.GetAttrData(EnSubModel.En_Model_Base, EnBaseAttrKey.En_AttrKey_Gyroscope)
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_NotOpenLens then
+			instance.environment.NoOpenLensValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_NotOpenLens))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_RedPoint then
+			instance.environment.RedPointValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_RedPoint))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_Holographic then
+			instance.environment.HolographicValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Holographic))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_2TimesLens then
+			instance.environment.TwoTimesLensValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_2TimesLens))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_4TimesLens then
+			instance.environment.FourTimesLensValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_4TimesLens))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_8TimesLens then
+			instance.environment.EightTimesLensValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_8TimesLens))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_15TimesLens then
+			instance.environment.FifteenTimesLensValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_15TimesLens))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_FreeView then
+			instance.environment.FreeViewValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_FreeView))
+		elseif enAttrKey == EnOperatorAttrKey.En_AttrKey_Firing then
+			instance.environment.FiringValue = tonumber(ui_setting_data.GetAttrData(EnSubModel.En_Model_Operater,EnOperatorAttrKey.En_AttrKey_Firing))
+		end
+		instance.environment.ValueChange = not instance.environment.ValueChange
+	end
+end
+
+local class = require "class"
+local object = require "object"
+
+CSystemSetting = class(object, nil, SystemSetting)
+
+if instance == nil then
+	instance = CSystemSetting()
+end
+

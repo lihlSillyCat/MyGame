@@ -1,0 +1,12 @@
+local require = require
+
+module("register_net_module")
+
+require "net_gateway_module"
+require "net_login_module"
+require "net_map_module"
+require "net_prop_module"
+require "net_action_module"
+require "net_zone_module"
+require "net_flight_module"
+require "net_paradrop_module"
