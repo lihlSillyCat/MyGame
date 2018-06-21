@@ -12,7 +12,6 @@ local string = string or require "string"
 local coroutine = coroutine or require "coroutine"
 local debug = require "debug"
 
-module("mobdebug")
 -- protect require "os" as it may fail on embedded systems without os module
 local os = os or (function(module)
   local ok, res = pcall(require, module)

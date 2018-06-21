@@ -5,8 +5,8 @@ end
 
 local require = require
 local print = print
---require('mobdebug').start('localhost')
---require('mobdebug').coro() --debug coroutine
+require('mobdebug').start('localhost')
+require('mobdebug').coro() --debug coroutine
 module("init")
 
 print("lua init")

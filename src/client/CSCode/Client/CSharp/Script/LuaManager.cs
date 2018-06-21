@@ -46,12 +46,8 @@ namespace War.Script
             yield return new WaitUntil(() => m_ScriptTextBytes.Count > 0);
 
             AssetBundleManager.UnloadAssetBundle(LuaScriptAssetBundleName);
-
-            Debug.Log("Start");
             luaEnv = new LuaEnv();
-            Debug.Log("Start1");
             luaEnv.AddLoader(ScriptLoader);
-            Debug.Log("Start2");
             luaEnv.DoString("require \"init\"");
         }
 
