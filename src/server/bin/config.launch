@@ -1,0 +1,21 @@
+-- 必要配置项
+thread = 8
+bootstrap = "snlua bootstrap"
+cpath = "./cservice/?.so"
+
+-- 服务器配置，可使用默认值
+logger = nil
+harbor = 0   -- 单节点服务器
+start = "launch"
+
+-- lua服务配置
+serverpatch = "../login/?.lua;../gate/?.lua;../game/?.lua;../match/?.lua;../plaza/?.lua;../bin/?.lua;"
+lualoader = "lualib/loader.lua"
+luaservice = "./service/?.lua;"..serverpatch
+
+-- 添加lua require 路径
+lua_path = "./lualib/?.lua;./lualib/?/init.lua;"..serverpatch
+lua_cpath = "./luaclib/?.so;"..serverpatch
+
+-- 用 snax 框架编写的服务的查找路径
+snax = serverpatch
