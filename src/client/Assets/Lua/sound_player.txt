@@ -1,0 +1,59 @@
+local require = require
+local assert = assert
+local pairs = pairs
+local print = print
+
+local AkSoundEngineLua = CS.War.Script.AkSoundEngineLua
+
+module("sound_player")
+
+local SoundPlayer = {}
+
+function SoundPlayer:ctor(selfType)
+	self.gameObject = nil
+	self.lastSoundStopEvents = {}
+end
+
+function SoundPlayer:SetGameObject(gameObject)
+	self.gameObject = gameObject
+end
+
+function SoundPlayer:PlayOnce(eventName)
+	if self.gameObject then
+		AkSoundEngineLua.PostEvent(eventName, self.gameObject)
+	end
+end
+
+function SoundPlayer:PlayContinuous(startEvent, stopEvent)
+	assert(stopEvent ~= nil, "sound stop event can't be nil!")
+	if self.gameObject then
+		AkSoundEngineLua.PostEvent(startEvent, self.gameObject)
+		self.lastSoundStopEvents[startEvent] = stopEvent
+	end
+end
+
+function SoundPlayer:StopContinuous(startEvent)
+	if self.gameObject then
+		local stopEvent = self.lastSoundStopEvents[startEvent]
+		AkSoundEngineLua.PostEvent(stopEvent, self.gameObject)
+	end
+end
+
+function SoundPlayer:_ClearAllContinuousSounds()
+	local gameObject = self.gameObject
+	if gameObject then
+		for startEvent, stopEvent in pairs(self.lastSoundStopEvents) do
+			AkSoundEngineLua.PostEvent(stopEvent, gameObject)
+		end
+	end
+end
+
+function SoundPlayer:Dispose()
+	self:_ClearAllContinuousSounds()
+	self.gameObject = nil
+end
+
+local class = require "class"
+local object = require "object"
+
+CSoundPlayer = class(object, nil, SoundPlayer)

@@ -1,0 +1,166 @@
+﻿--frame_updator.lua-----------------------------------------------------
+--author : 郑秀程
+--created : 2017-11-10
+--purpose : 帧更新器，假如有大量的事件来触发了UI更新的时候，可以通过这种方式
+--          把更新延迟到下一帧统一更新，提高性能
+------------------------------------------------------------------------
+
+local Time = CS.UnityEngine.Time
+local require = require
+local BaseObject = CS.War.Script.BaseObject
+local string = string
+local table = table
+local pairs = pairs
+local log = require "log"
+
+module("frame_updator")
+
+__CheckTimer = nil                      --检查定时器
+__RequestNum = 0 					    --当前请求的数量
+__RequestCacheMap = {}			        --更新请求缓存列表
+__LastUpdTickCount = Time.time          --当前的毫秒数
+__FrameTimeInterval = 16			    --更新的时间间隔
+
+--[[请求更新
+@param callback 回调函数。必须为字符串形式
+@param callcontext 回调现场
+@param bLoop 是否循环，默认false
+@param interval 间隔执行的时间（目前只对循环执行的有效）
+]]
+function Request(callback, callcontext, bLoop, interval)
+    
+    --是否循环，默认false
+    if bLoop == nil then
+        bLoop = false
+    end
+    
+    --执行间隔
+    if interval == nil then
+        interval = __FrameTimeInterval
+    end
+
+	if callback == nil then
+		log.Error("请求窗口更新失败，回调函数不存在！")
+		return
+	end
+		
+	if __RequestCacheMap[callback] ~= nil then  --更新请求已经存在，更新回调现场
+        __RequestCacheMap[callback].funcData = callcontext
+        __RequestCacheMap[callback].bLoop = bLoop
+        __RequestCacheMap[callback].interval = interval
+		_CheckUpdTimer()
+		return
+	end
+
+	__RequestCacheMap[callback] = {	--保存现象
+		func = callback,
+		funcData = callcontext,
+		bLoop = bLoop,
+        interval = interval,
+        lastTick = 0,  --最后执行时间             
+	}
+	
+	__RequestNum = __RequestNum+1 --增加计数
+	
+	_CheckUpdTimer()
+    
+end
+
+--[[取消更新]]
+function Cancel(callback)
+	if callback == nil then
+		log.Error("回调函数不存在！")
+		return
+	end
+	
+	if __RequestCacheMap[callback] ~= nil then
+		__RequestCacheMap[callback] = nil
+		__RequestNum = __RequestNum - 1
+        
+        _CheckUpdTimer()
+        
+	end
+    
+end
+
+--[[获取当前时间]]
+function __CurTickCount()
+    return Time.time * 1000
+    
+end
+
+--[[执行更新回调]]
+function _DoUpdate()
+
+	local tempCurTickCount = __CurTickCount()
+	local pass = tempCurTickCount - __LastUpdTickCount
+    
+    --最后更新时间
+	__LastUpdTickCount = tempCurTickCount
+	
+	--拷贝更新列表
+	local updList = {}
+	for k,context in pairs(__RequestCacheMap) do
+		updList[k] = context
+	end
+	
+	--本次更新处理清理
+	__RequestCacheMap = {}
+	__RequestNum = 0	
+
+	--将要循环执行的现场再次添加回来
+	for k,context in pairs(updList) do
+		if context.func ~= nil then
+			if context.bLoop == true then 
+				__RequestCacheMap[k] = context
+				__RequestNum = __RequestNum+1
+			end
+		end
+	end
+	_CheckUpdTimer()
+
+	--执行回调
+	for k,context in pairs(updList) do
+		if context.func ~= nil then
+            if context.bLoop == true then
+                local passTick = tempCurTickCount - context.lastTick
+                if passTick >= context.interval then
+                    context.func(context.funcData)
+                    context.lastTick = tempCurTickCount
+                end
+            
+            else
+                context.func(context.funcData)
+            end
+		end
+	end
+
+end
+
+--[[检查定时器]]
+function _CheckUpdTimer()
+	
+	if __RequestNum <= 0 then  --没有请求的时候需要关闭定时器
+		if __CheckTimer ~= nil then
+            __CheckTimer:Dispose()
+            __CheckTimer = nil
+		end
+		return
+	end
+
+	if __CheckTimer == nil then
+		__LastUpdTickCount = __CurTickCount()
+        
+		__CheckTimer = BaseObject()
+        __CheckTimer:SetUpdateTimer(function(deltaTime)
+            _DoUpdate()
+        end)
+    
+	end
+	
+end
+
+--[[强制更新一次]]
+function ForceUpdate()
+    _DoUpdate()
+end

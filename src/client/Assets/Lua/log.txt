@@ -1,0 +1,52 @@
+-- log.txt --------------------------------------------------------
+-- author:  郑秀程
+-- date:    2017.10.17
+-- ver:     1.0
+-- desc:    日志处理
+-------------------------------------------------------------------
+
+local Debug = CS.UnityEngine.Debug
+local Time = CS.UnityEngine.Time
+local Utility = CS.War.Script.Utility
+
+module("log")
+
+function Error(msg)
+    if Utility.IsInEditor() then
+        Debug.LogError("["..Time.time.."] "..msg)
+    else
+        Debug.LogError(msg)
+    end
+end
+
+function ErrorFormat(msg, ...)
+    if Utility.IsInEditor() then
+        Debug.LogErrorFormat("["..Time.time.."] "..msg, ...)
+    else
+        Debug.LogErrorFormat(msg, ...)
+    end
+end
+
+function Log(msg)
+    if Utility.IsInEditor() then
+        Debug.Log("["..Time.time.."] "..msg)
+    end
+end
+
+function LogFormat(msg,...)
+    if Utility.IsInEditor() then
+        Debug.LogFormat("["..Time.time.."] "..msg, ...)
+    end
+end
+
+function Warning(msg)
+    if Utility.IsInEditor() then
+        Debug.LogWarning("["..Time.time.."] "..msg)
+    end
+end
+
+function WarningFormat(msg,...)
+    if Utility.IsInEditor() then
+        Debug.LogWarningFormat("["..Time.time.."] "..msg, ...)
+    end
+end

@@ -1,0 +1,165 @@
+local print = print
+local require = require
+local pairs = pairs
+local table = table
+local string = string
+
+local event = require "event"
+
+local SceneManager = CS.UnityEngine.SceneManagement.SceneManager
+local GameObject = CS.UnityEngine.GameObject
+local Vector3 = CS.UnityEngine.Vector3
+
+local World = CS.War.Script.World
+local IOSystem = CS.War.Script.IOSystem
+local GameObjectPool = CS.War.Base.GameObjectPool
+local GC = CS.System.GC
+local collectgarbage = collectgarbage
+local Application = CS.UnityEngine.Application
+local Debug = CS.UnityEngine.Debug
+local map = require "map"
+        
+module("game")
+
+STATE_INIT = 0
+STATE_LOGIN_TYPE = 1
+STATE_WAIT_LOGIN = 2
+STATE_CONNECT = 3
+STATE_CONNECTED = 4
+STATE_LOGINED = 5
+STATE_CREATE_ACTOR = 6
+STATE_MAKE_MATCH = 7
+STATE_MATCH = 8
+STATE_GAME = 9
+--STATE_PROP = 10
+STATE_LOGIN_SELECT = 11
+STATE_VISITOR_LOADING = 12
+STATE_PHONE_LOGIN = 13	
+STATE_REGISTER_LOGIN = 14
+STATE_BIGMAP = 15
+STATE_MATCH_OPENING = 16
+--STATE_TAKE_MEDICINE = 17
+STATE_SCENE_LOADING = 18
+STATE_SETTLE_SINGLE = 19
+STATE_SETTLE_GROUP = 20
+STATE_WATCHTEAMER_READY = 21
+STATE_WATCHTEAMER = 22
+STATE_ACCOUNT_LOGIN = 23
+STATE_SETTLE_CAMP = 24
+
+-- 新手类型选择
+STATE_NEWER_SELECT = 25
+STATE_VIRTUAL_BATTLE = 26
+
+MAPTYPE_NORMAL = 0
+MAPTYPE_BIG = 1
+
+--服务器列表
+servers = nil
+
+--当前游戏世界名称
+gameWorldName = ""
+
+--角色列表
+actors = nil
+
+--角色场景是否加载，主要用于防止重复加载
+actorSceneLoaded = false
+
+--实体列表
+entities = {}
+
+--主角
+hero = nil
+
+local states = {}
+local currentState = STATE_INIT --
+
+--获取当前状态
+function GetCurState()
+	return currentState
+end
+
+--进入特定状态
+function EnterState(state)
+	if currentState ~= state then
+		event.Trigger(event.STATE_LEAVE, currentState)
+		currentState = state
+		event.Trigger(event.STATE_ENTER, currentState)
+		return true
+	else
+		return false
+	end
+end
+
+--状态压入栈
+function PushState(state)
+	if currentState ~= state then
+		event.Trigger(event.STATE_LEAVE, currentState)
+		table.insert(states, 1, currentState)
+		currentState = state
+		event.Trigger(event.STATE_ENTER, currentState)
+		return true
+	else
+		return false
+	end
+end
+
+--状态弹出栈
+function PopState()
+	if #states > 0 then
+		if EnterState(states[1]) then
+			table.remove(states, 1)
+		end
+	end
+end
+
+--加载地图
+function LoadMap(mapID)
+    map.Load(mapID)   
+end
+
+--卸载地图
+function UnloadMap(mapID)
+    return map.Unload(mapID)    	
+end
+
+--返回地图是否加载
+function IsMapLoaded()
+	return map.IsMapLoaded()
+end
+
+--获取当前地图ID
+function GetCurMapID()
+	return map.GetCurMapID()
+end
+
+--通知场景销毁
+function NotifySceneDestroy()
+    map.NotifySceneDestroy()
+end
+
+function OnSceneloaded()
+    local lang = require "lang"
+    if lang.USE_LANG == "zh" then    
+        World.NotifyLang(1)
+    else
+        World.NotifyLang(0)
+    end
+    if Application.isEditor then
+        local pools = GameObjectPool.CorruptedObjectPools()
+        if pools and pools.Length > 0 then
+            local content = "========= 对象池泄露 ========\n"
+            for i = 0, pools.Length-1 do
+                local pool = pools[i]
+                content = content .. pool .. "\n"
+            end
+            content = content .. "============================="
+            Debug.LogError(content)
+        end
+    end
+end
+
+event.Register(event.SCENE_LOADED, OnSceneloaded)
+
+	

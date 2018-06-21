@@ -1,0 +1,9 @@
+local class = require "class"
+local setmetatable = setmetatable
+
+module("object")
+
+local obj = {}
+setmetatable(obj, {__call = function () return {} end})
+
+return class(obj, nil, nil)

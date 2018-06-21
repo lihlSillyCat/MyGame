@@ -1,0 +1,88 @@
+local require = require
+local table = table
+local coroutine = coroutine
+local pairs = pairs
+local debug = debug
+local print = print
+local string = string
+
+local Time = CS.UnityEngine.Time
+local Profiler = CS.UnityEngine.Profiling.Profiler
+
+local log = require "log"
+local class = require "class"
+
+module("time_ticker")
+
+local ProfileEnable = false
+
+local TimeTicker = {}
+
+function TimeTicker:ctor()
+	self._timeTicks = {}
+
+	self.__base:SetUpdateTimer(function(deltaTime)
+		self:_Tick(deltaTime)
+	end)
+end
+
+function TimeTicker:_Tick(deltaTime)
+	if ProfileEnable then
+		Profiler.BeginSample("TimeTicker.Tick")
+	end
+	local ticks = self._timeTicks
+	for i, t in pairs(ticks) do
+		local co = t.co
+		if co == nil then
+			ticks[i] = nil
+		elseif t.startTime < Time.time then
+			t.leftCycle = t.leftCycle - deltaTime
+			t.deltaTime = t.deltaTime + deltaTime
+			
+			if t.leftCycle <= 0 then
+				if ProfileEnable then
+					Profiler.BeginSample(t.trace)
+				end
+				local res, cycle = coroutine.resume(co, t)
+				if not res then
+					log.Error(debug.traceback(co, cycle))
+				end
+				if t.co == nil or coroutine.status(co) == 'dead' then
+					t.co = nil
+					ticks[i] = nil
+				else
+					t.deltaTime = 0
+					t.leftCycle = cycle
+				end
+				if ProfileEnable then
+					Profiler.EndSample()
+				end
+			end
+		end
+	end
+	
+	if ProfileEnable then
+		Profiler.EndSample()
+	end
+end
+
+function TimeTicker:CreateTimeTicker(delay, func)
+	local co = coroutine.create(func)
+	local ticker = { co = co, leftCycle = delay, deltaTime = 0, startTime = Time.time }
+	if ProfileEnable then
+		ticker.trace = (string.sub(debug.traceback(), 24, -1))
+	end
+	table.insert(self._timeTicks, ticker)
+	return ticker
+end
+
+function TimeTicker:RemoveTimeTicker(ticker)
+	ticker.co = nil
+end
+
+function TimeTicker:Dispose()
+	self._timeTicks = nil
+	self.__base:Dispose()
+end
+
+return TimeTicker

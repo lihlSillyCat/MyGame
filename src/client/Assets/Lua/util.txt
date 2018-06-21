@@ -1,0 +1,284 @@
+local require = require
+local pairs = pairs
+local type = type
+local tostring = tostring
+local table = table
+local coroutine = coroutine
+local string = string
+local Time = CS.UnityEngine.Time
+local Utility = CS.War.Script.Utility
+local os = os
+
+local math = math
+local NetworkReachability = CS.UnityEngine.NetworkReachability
+local Application = CS.UnityEngine.Application
+local Font = CS.UnityEngine.Font
+
+
+module("util")
+
+local base_object = require "base_object"
+local delayObj = base_object()
+
+function DelayCall(seconds, func)
+	return delayObj:CreateTimeTicker(seconds, func)
+end
+
+function RemoveDelayCall(ticker)
+	delayObj:RemoveTimeTicker(ticker)
+end
+
+function WaitUntil(func)
+	while not func() do
+		coroutine.yield(0)
+	end
+end
+
+--[[格式化时间
+@param nTime 秒
+@param strFormat 格式化字符串，比如：#D天#H小时#M分#S秒
+]]
+function FormatTime2( nTime, strFormat )
+	local day = string.format("%02d", nTime/86400)
+	local hour = string.format("%02d", math.mod(nTime, 86400)/3600)
+	local min = string.format("%02d", math.mod(nTime/60, 60))
+	local sec = string.format("%02d", math.mod(nTime, 60))
+
+	if strFormat == nil then
+		strFormat = "#D #H:#M:#S"
+	end
+
+	strFormat = string.gsub(strFormat, "#D", day)
+	strFormat = string.gsub(strFormat, "#H", hour)
+	strFormat = string.gsub(strFormat, "#M", min)
+	strFormat = string.gsub(strFormat, "#S", sec)
+
+	return strFormat
+end
+
+
+-------------------------------------------------------------------
+-- 分割字符串
+-- brief : 分割字符串，返回一个字符串数组
+-- @param str : 要分割的字符串
+-- @param separator : 分割符,可以是一个长度1-n的字符串
+-- @param filter    : 过滤器,预处理函数,可以为nil,比如可以传入tonumber,这样就全部转成数字了
+-------------------------------------------------------------------
+function SplitString(str,separator,filter)
+	if str==nil then
+        local log = require "log"
+	    log.Error("要分割的字符串为空,请检查！")
+		return nil
+	end
+
+	local ret = {}
+	local sp_len = string.len(separator)
+	local pos = 1- sp_len
+	while true do
+		local pre = pos+sp_len
+		pos = string.find(str,separator,pre,true)
+		if pos==nil then
+			table.insert(ret,string.sub(str,pre))
+			break
+		else
+			table.insert(ret,string.sub(str,pre,pos-1))
+		end
+	end
+
+	-- 预处理一下
+	if filter~=nil then
+       do_visit( ret,filter )
+	end
+
+	return ret
+end
+
+--[[获取当前时间]]
+function GetCurTickCount()
+    return Time.time * 1000
+end
+
+--[[显示外观tips]]
+function tips_ShowApperance( goodsInfo, goodsNum, pos,callback)
+	local curTips = require "ui_tips_appearance"
+	local ui_tips_define = require "ui_tips_define"
+	local parameters = {goodsID=goodsInfo.ID, mode=ui_tips_define.TIPS_MODE_DROP}
+	parameters.mode = ui_tips_define.TIPS_MODE_DROP
+	
+	if curTips ~= nil then
+		if curTips.btnComp ~= nil then
+			curTips.btnComp:SetState(2)
+		end
+		
+		local left = 40
+		local top = 0
+		parameters.left = left
+		parameters.top = top
+
+		curTips.Show(parameters, function(action)
+			callback(action, 1)
+		end)
+	end
+end
+
+function tips_CloseApperance()
+	local curTips = require "ui_tips_appearance"
+	curTips.Close()
+end
+
+
+-- 获取自己的actorID
+function Common_GetHeroActorID()
+	---临时性代码,组队正式化后删除
+	local characterManager = require "character_manager"
+	local nHeroActorID = characterManager.GetHeroActorID()
+	
+	if 0== nHeroActorID then
+		local entity_mgr = require "entity_mgr"
+		local hero = entity_mgr.GetSelfEntity()
+		if hero ~=nil then
+			nHeroActorID = hero:GetActorID()
+		end
+	end
+	return nHeroActorID
+end
+
+--取得当前点相对于主角的距离
+function Common_GetHeroRoughDistance(pos)
+	if nil ==pos or pos.x==nil or pos.z==nil then
+		return 1000
+	end
+
+
+	local characterManager = require "character_manager"
+	local hero = characterManager.GetHero()
+	if nil~=hero then
+		local heroPos = hero:GetPosition()
+		if heroPos~=nil then
+			return math.abs(pos.x-heroPos.x)+math.abs(pos.z-heroPos.z)
+		end
+	
+
+	end
+
+	return math.abs(pos.x+pos.z)
+
+end
+
+--[[将一个table转换成一个字符串]]
+function TableToString(t)
+	local retstr= "{"
+
+	local i = 1
+	for key,value in pairs(t) do
+	    local signal = ","
+	    if i==1 then
+          signal = ""
+		end
+
+--		if key==i then
+--			-- 不加键值
+--
+--			retstr = retstr..signal..tostringEx(value)
+--		else
+			if type(key)=='number' then
+				retstr = retstr..signal..'['..key.."]="..ToStringEx(value)
+			else
+				retstr = retstr..signal..key.."="..ToStringEx(value)
+			end
+--		end
+
+		i = i+1
+        
+	end
+
+ 	retstr = retstr.."}"
+ 	return retstr
+end
+
+--[[将一个值转换成字符串]]
+function ToStringEx(value)
+	if type(value)=='table' then
+	   return TableToString(value)
+	elseif type(value)=='string' then
+		return "\""..value.."\""
+	else
+	   return tostring(value)
+	end
+end
+
+--[[将一个整型数据转换成0，1数组]]
+function IntToBiteArray(intNum)
+    local bytes = Utility.IntToBiteArray(intNum)
+    return bytes
+end
+
+ENETWORK_TYPE=
+{
+	MOBILE=1,			--移动数据
+	WIFI=2,				--WIFI
+	NO_NETWORK=3		--无网络
+}
+
+--获取当前网络类型：移动数据，WIFI，无网络
+function GetNetworkType()
+	if Application.internetReachability == NetworkReachability.NotReachable then
+		return ENETWORK_TYPE.NO_NETWORK
+	elseif Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork then
+		return ENETWORK_TYPE.WIFI
+	elseif Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork then
+		return ENETWORK_TYPE.MOBILE 
+	end
+	return nil
+end
+
+-- 设置动态字体纹理
+function PreSetGoodsNameInTexture(font, fromKey, tokey)
+	-- 设置所有的物品名称纹理
+	local config_datas = require "config_datas"
+	local str = ""
+	for nKey = fromKey, tokey do
+		local info = config_datas.GetDataByName("lang_pb", "Resources", nKey)
+		if info then
+			str = str..info.zh
+		end
+	end
+	font:RequestCharactersInTexture(str)
+end
+
+-- 获取版本号
+function GetClientVersion()
+	return Application.version
+end
+
+--[[格式化时间
+@param nTime 秒
+@param strFormat 格式化字符串
+]]
+function FormatTime( nTime )
+	local date = os.date("*t", nTime)
+	function __formatInt(val)
+		if val < 10 then
+			val = "0"..val
+		end
+		return val
+	end
+	return date.year.."-"..__formatInt(date.month).."-"..__formatInt(date.day).." "..__formatInt(date.hour)..":"..__formatInt(date.min)
+end
+
+--浮点数转int
+function Float2Int(num)
+	if nil == num then
+		return 0
+	end
+	if num <= 0 then
+		return math.ceil(num);
+	end
+
+	if math.ceil(num) == num then
+	   num = math.ceil(num);
+	else
+	   num = math.ceil(num) - 1;
+	end
+	return num;
+end

@@ -1,0 +1,190 @@
+﻿
+
+<linker>
+
+	<assembly fullname="Script">
+	    <type fullname="War.Script.UnityEngineObjectExtention" preserve="all"/>
+		<type fullname="Coroutine_Runner" preserve="all"/>
+		<type fullname="Utility.FPSCounter" preserve="all"/>
+		<type fullname="War.Script.AkSoundEngineLua" preserve="all"/>
+		<type fullname="War.Script.BaseObject" preserve="all"/>
+		<type fullname="War.Script.Bullet" preserve="all"/>
+		<type fullname="War.Script.FollowPosition" preserve="all"/>
+		<type fullname="War.Script.HTTPReq" preserve="all"/>
+		<type fullname="War.Script.IOSystem" preserve="all"/>
+		<type fullname="War.Script.Net" preserve="all"/>
+		<type fullname="War.Script.Notice" preserve="all"/>
+		<type fullname="War.Script.ServerInfo" preserve="all"/>
+		<type fullname="War.Script.UnityEngineObjectExtention" preserve="all"/>
+		<type fullname="War.Script.WebView" preserve="all"/>
+		<type fullname="War.Script.World" preserve="all"/>
+		<type fullname="War.Script.Utility" preserve="all"/>
+		<type fullname="War.Script.ServerInfo+IpPort" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="UnityEngine">
+	    <type fullname="UnityEngine.WaitForSeconds" preserve="all"/>
+		<type fullname="UnityEngine.WaitForEndOfFrame" preserve="all"/>
+		<type fullname="UnityEngine.WaitForFixedUpdate" preserve="all"/>
+		<type fullname="UnityEngine.WaitForSecondsRealtime" preserve="all"/>
+		<type fullname="UnityEngine.WaitUntil" preserve="all"/>
+		<type fullname="UnityEngine.WaitWhile" preserve="all"/>
+		<type fullname="UnityEngine.WWW" preserve="all"/>
+		<type fullname="UnityEngine.Object" preserve="all"/>
+		<type fullname="UnityEngine.Vector2" preserve="all"/>
+		<type fullname="UnityEngine.Vector3" preserve="all"/>
+		<type fullname="UnityEngine.Vector4" preserve="all"/>
+		<type fullname="UnityEngine.Quaternion" preserve="all"/>
+		<type fullname="UnityEngine.Color" preserve="all"/>
+		<type fullname="UnityEngine.Ray" preserve="all"/>
+		<type fullname="UnityEngine.Bounds" preserve="all"/>
+		<type fullname="UnityEngine.Ray2D" preserve="all"/>
+		<type fullname="UnityEngine.Time" preserve="all"/>
+		<type fullname="UnityEngine.GameObject" preserve="all"/>
+		<type fullname="UnityEngine.Component" preserve="all"/>
+		<type fullname="UnityEngine.Behaviour" preserve="all"/>
+		<type fullname="UnityEngine.Transform" preserve="all"/>
+		<type fullname="UnityEngine.Resources" preserve="all"/>
+		<type fullname="UnityEngine.TextAsset" preserve="all"/>
+		<type fullname="UnityEngine.ShaderVariantCollection" preserve="all"/>
+		<type fullname="UnityEngine.Keyframe" preserve="all"/>
+		<type fullname="UnityEngine.AnimationCurve" preserve="all"/>
+		<type fullname="UnityEngine.AnimationClip" preserve="all"/>
+		<type fullname="UnityEngine.Animator" preserve="all"/>
+		<type fullname="UnityEngine.MonoBehaviour" preserve="all"/>
+		<type fullname="UnityEngine.ParticleSystem" preserve="all"/>
+		<type fullname="UnityEngine.SkinnedMeshRenderer" preserve="all"/>
+		<type fullname="UnityEngine.Renderer" preserve="all"/>
+		<type fullname="UnityEngine.LineRenderer" preserve="all"/>
+		<type fullname="UnityEngine.Debug" preserve="all"/>
+		<type fullname="UnityEngine.Camera" preserve="all"/>
+		<type fullname="UnityEngine.PlayerPrefs" preserve="all"/>
+		<type fullname="UnityEngine.Mathf" preserve="all"/>
+		<type fullname="UnityEngine.Application" preserve="all"/>
+		<type fullname="UnityEngine.SystemLanguage" preserve="all"/>
+		<type fullname="UnityEngine.RaycastHit" preserve="all"/>
+		<type fullname="UnityEngine.RuntimePlatform" preserve="all"/>
+		<type fullname="UnityEngine.Profiling.Profiler" preserve="all"/>
+		<type fullname="UnityEngine.SceneManagement.SceneManager" preserve="all"/>
+		<type fullname="UnityEngine.Rigidbody" preserve="all"/>
+		<type fullname="UnityEngine.WheelCollider" preserve="all"/>
+		<type fullname="UnityEngine.Collision" preserve="all"/>
+		<type fullname="UnityEngine.Collider" preserve="all"/>
+		<type fullname="UnityEngine.SphereCollider" preserve="all"/>
+		<type fullname="UnityEngine.SystemInfo" preserve="all"/>
+		<type fullname="UnityEngine.Screen" preserve="all"/>
+		<type fullname="UnityEngine.QualitySettings" preserve="all"/>
+		<type fullname="UnityEngine.Input" preserve="all"/>
+		<type fullname="UnityEngine.KeyCode" preserve="all"/>
+		<type fullname="UnityEngine.Events.UnityEvent" preserve="all"/>
+		<type fullname="UnityEngine.Events.UnityEvent`1[UnityEngine.Vector2]" preserve="all"/>
+		<type fullname="UnityEngine.RectTransform" preserve="all"/>
+		<type fullname="UnityEngine.CanvasGroup" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="mscorlib">
+	    <type fullname="System.GC" preserve="all"/>
+		<type fullname="System.Object" preserve="all"/>
+		<type fullname="System.Collections.Generic.List`1[System.Int32]" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="UnityEngine.UI">
+	    <type fullname="UnityEngine.UI.Events.UIEvent" preserve="all"/>
+		<type fullname="UnityEngine.UI.Events.UIEvent`1[System.Single]" preserve="all"/>
+		<type fullname="UnityEngine.UI.Events.UIEvent`1[UnityEngine.Vector2]" preserve="all"/>
+		<type fullname="UnityEngine.UI.Button" preserve="all"/>
+		<type fullname="UnityEngine.UI.Text" preserve="all"/>
+		<type fullname="UnityEngine.UI.Image" preserve="all"/>
+		<type fullname="UnityEngine.UI.Dropdown" preserve="all"/>
+		<type fullname="UnityEngine.UI.InputField" preserve="all"/>
+		<type fullname="UnityEngine.UI.Toggle" preserve="all"/>
+		<type fullname="UnityEngine.UI.ScrollRect" preserve="all"/>
+		<type fullname="UnityEngine.UI.DefaultControls" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="Game">
+	    <type fullname="War.Game.CharacterEntity" preserve="all"/>
+		<type fullname="War.Game.LayerConfig" preserve="all"/>
+		<type fullname="War.Game.PhysicsUtility" preserve="all"/>
+		<type fullname="War.Game.ShadowRigid" preserve="all"/>
+		<type fullname="War.Game.BodyPart" preserve="all"/>
+		<type fullname="War.Game.WeaponGun" preserve="all"/>
+		<type fullname="War.Game.GunSightEntity" preserve="all"/>
+		<type fullname="War.Game.HitAction" preserve="all"/>
+		<type fullname="War.Game.ChuteEntity" preserve="all"/>
+		<type fullname="War.Game.DoorEntity" preserve="all"/>
+		<type fullname="War.Game.TankEntity" preserve="all"/>
+		<type fullname="War.Game.TankInfo" preserve="all"/>
+		<type fullname="War.Game.TankBulletCollider" preserve="all"/>
+		<type fullname="War.Game.TankHitPart" preserve="all"/>
+		<type fullname="War.Game.TankHitAction" preserve="all"/>
+		<type fullname="War.Game.Ani.EnActionID" preserve="all"/>
+		<type fullname="War.Game.Ani.EnActionParamID" preserve="all"/>
+		<type fullname="War.Game.FollowBonePosition" preserve="all"/>
+		<type fullname="War.Game.MeleeColliderTrigger" preserve="all"/>
+		<type fullname="War.Game.DoorPart" preserve="all"/>
+		<type fullname="War.Game.ShellEntity" preserve="all"/>
+		<type fullname="Wheels" preserve="all"/>
+		<type fullname="CarController" preserve="all"/>
+		<type fullname="VehiclesSyncData" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="Controller">
+	    <type fullname="War.Controller.CameraController" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="Scene">
+	    <type fullname="War.Scene.ObjectToMove" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="Render">
+	    <type fullname="War.Render.ShaderCollectionWarmUp" preserve="all"/>
+		<type fullname="UnityEngine.PostProcessing.PostProcessingBehaviour" preserve="all"/>
+		<type fullname="UnityEngine.PostProcessing.PostProcessingProfile" preserve="all"/>
+		<type fullname="UnityEngine.PostProcessing.PostProcessingModel" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="UI">
+	    <type fullname="ETCJoystick" preserve="all"/>
+		<type fullname="War.UI.ClickButton" preserve="all"/>
+		<type fullname="War.UI.SpriteAssets" preserve="all"/>
+		<type fullname="War.UI.Draggable" preserve="all"/>
+		<type fullname="War.UI.DraggableImage" preserve="all"/>
+		<type fullname="War.UI.DropZone" preserve="all"/>
+		<type fullname="War.UI.SpriteSwitcher" preserve="all"/>
+		<type fullname="War.UI.Minimap" preserve="all"/>
+		<type fullname="War.UI.MinimapGrid" preserve="all"/>
+		<type fullname="War.UI.MinimapLevel" preserve="all"/>
+		<type fullname="War.UI.MinimapMarker" preserve="all"/>
+		<type fullname="War.UI.MinimapInput" preserve="all"/>
+		<type fullname="War.UI.DoubleClickButton" preserve="all"/>
+		<type fullname="War.UI.PressButton" preserve="all"/>
+		<type fullname="War.UI.SwipeOnScreen" preserve="all"/>
+		<type fullname="War.UI.ClickedOnScreen" preserve="all"/>
+		<type fullname="War.UI.Zoomer" preserve="all"/>
+		<type fullname="War.UI.LocalizationText" preserve="all"/>
+		<type fullname="War.UI.StateButton" preserve="all"/>
+		<type fullname="War.UI.ClickedOnUI" preserve="all"/>
+		<type fullname="War.UI.CScrollRect" preserve="all"/>
+		<type fullname="War.UI.Drag" preserve="all"/>
+		<type fullname="War.UI.InputHandler" preserve="all"/>
+		<type fullname="War.UI.GyroscopeInput" preserve="all"/>
+		
+	</assembly>
+
+	<assembly fullname="Base">
+	    <type fullname="War.Base.GameObjectPool" preserve="all"/>
+		<type fullname="War.Base.RES_TYPE" preserve="all"/>
+		<type fullname="War.Base.AutoReleaseToPool" preserve="all"/>
+		
+	</assembly>
+
+</linker>
