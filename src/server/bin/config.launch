@@ -9,7 +9,7 @@ harbor = 0   -- 单节点服务器
 start = "launch"
 
 -- lua服务配置
-serverpatch = "../login/?.lua;../gate/?.lua;../game/?.lua;../match/?.lua;../plaza/?.lua;../bin/?.lua;"
+serverpatch = "../login/?.lua;../gate/?.lua;../game/?.lua;../match/?.lua;../plaza/?.lua;../bin/?.lua;../user/?.lua;../../common/?.lua"
 lualoader = "lualib/loader.lua"
 luaservice = "./service/?.lua;"..serverpatch
 
