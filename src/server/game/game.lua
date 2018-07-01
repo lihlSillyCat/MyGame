@@ -1,4 +1,7 @@
 local skynet = require "skynet"
+local servicemsg = require "servicemsg"
+
+local gate = tonumber(...)
 
 local net_cmd = {}
 
@@ -12,3 +15,9 @@ local function user_out(uid)
 	-- body
 end
 
+
+skynet.start(function()
+    
+    skynet.send(gate, "lua", "register", servicemsg.game)
+    
+end)

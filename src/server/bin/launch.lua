@@ -12,4 +12,7 @@ skynet.start(function()
 		maxclient = 1024,   -- 最多允许 1024 个外部连接同时建立
 		nodelay = true,     -- 给外部连接设置  TCP_NODELAY 属性
 	})
+
+    local gate = skynet.newservice("game", gate)
+
 end)

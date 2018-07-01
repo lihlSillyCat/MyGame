@@ -63,4 +63,20 @@ function handler.message(fd, msg, sz)
     end
 end
 
+
+local CMD = {}
+function CMD.register(source, msgid)
+    if service[msgid] == nil then
+        service[msgid] = source
+        print("服务["..source.."]msgid["..msgid.."]注册成功")
+    else
+        skynet.error("重复注册服务["..source.."]msgid["..msgid.."]")
+    end
+end
+
+function handler.command(cmd, source, ...)
+    local f = assert(CMD[cmd])
+    return f(source, ...)   
+end
+
 gateserver.start(handler)
