@@ -6,3 +6,4 @@
 *.dSYM
 
 /src/clientCode
+/src/3rd/protoc-gen-lua/
