@@ -5,11 +5,11 @@
 
 ## 客户端发送给服务器
 
-2个字节（长度，Big-Endian 编码）+ 1个字节（服务id，即消息目的地）+ 2个字节（消息id，Big-Endian 编码）+ 消息体（protobuf序列化的包）
+2个字节（长度，Big-Endian 编码）+ 1个字节（服务id，即消息目的地）+ 2个字节（消息id，Little-Endian 编码）+ 消息体（protobuf序列化的包）
 
 ## 服务器发送给客户端
 
-2个字节（长度，Big-Endian 编码）+ 1个字节（服务id，即消息原地址）+ 2个字节（消息id，Big-Endian 编码）+ 消息体（protobuf序列化的包）
+2个字节（长度，Big-Endian 编码）+ 1个字节（服务id，即消息原地址）+ 2个字节（消息id，Little-Endian 编码）+ 消息体（protobuf序列化的包）
 
 ## 目的地即服务模块
 
