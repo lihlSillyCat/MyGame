@@ -82,7 +82,8 @@ function OnMessageReceive(id, msg)
 end
 
 function OnMessageRecv(packetId, srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
-    OnMessageHandleFunc(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+  
+  OnMessageHandleFunc(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
 		
 	--[[
     --print("OnMessageRecv1 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
@@ -93,22 +94,21 @@ function OnMessageRecv(packetId, srcEndpoint, dstEndpoint, keyModule, keyAction,
 	]]
 end
 
-function SendMessage(srcEndPoint, dstEndPoint, keyModule, keyAction, pbInstance,bFilter)
-	
-	if pbInstance==nil then
-		log.Error("netInstance:SendMessage pbInstance==nil ! keyModule:"..keyModule.."keyAction"..keyAction)
+function SendMessage(serverID, msgID, pbInstance, bFilter)
+  local str = "012abcd"
+  local strByte = string.byte(str, 1)
+	netInstance:SendMessage(serverID, msgID, "012abcd")
+	--[[if pbInstance==nil then
+		log.Error("netInstance:SendMessage pbInstance==nil ! serverID:".. serverID.."msgID".. msgID)
 		return
 	end
 	
 	if bFilter == nil or bFilter == false then
-		if mbConnectCompleted == false then
+		if mbConnectCompleted == false then
 			return
 		end
 	end	
-
-    --print("SendMessage1 module="..keyModule..", action= "..keyAction)
-	netInstance:SendMessage(srcEndPoint, dstEndPoint, keyModule, keyAction, pbInstance:SerializeToString())
-    --print("SendMessage2 module="..keyModule..", action= "..keyAction)
+	netInstance:SendMessage(serverID, msgID, pbInstance:SerializeToString())--]]
 end
 
 function Connect(ip, port, connect_type,callback)

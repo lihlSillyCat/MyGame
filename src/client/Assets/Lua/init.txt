@@ -12,7 +12,13 @@ module("init")
 print("lua init")
 
 local function Startup()
-	
+	local net = require "net"
+  net.Connect("192.168.2.170", 2048, 1, function()
+      net.SendMessage(1, 2, "werqrtrtwertrrw")
+      print "网络连接成功"
+  end)
 end
+
+Startup()
 
 

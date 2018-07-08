@@ -1,0 +1,8 @@
+local require = require
+local print = print
+
+module("net_gateway")
+
+function S2CPing(msg)
+	print(msg)
+end
