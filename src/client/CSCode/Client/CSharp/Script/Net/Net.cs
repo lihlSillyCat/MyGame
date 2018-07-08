@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using XLua;
 using War.Base;
+using System.Net;
+using System.Net.Sockets;
 
 namespace War.Script
 {
@@ -81,19 +83,6 @@ namespace War.Script
         //当前连接的IP和端口
         private string m_IP;
         private int m_Port;
-
-        /*
-        [CSharpCallLua]
-        public delegate void PacketEventHandler(UInt16 packetID,
-                                            byte srcEndpoint,
-                                            byte dstEndpoint,
-                                            UInt16 keyModule,
-                                            UInt32 keyAction,
-                                            UInt32 sid,
-                                            byte[] buffer,int nLen);
-
-        protected PacketEventHandler m_MessageEventHandler;
-        */
 
         protected IMsgHandler m_MessageEventHandler;
 
@@ -174,7 +163,6 @@ namespace War.Script
 
                 //检查是否有连接错误
                 CheckConnectError();
-
                 if (m_CurrentSocketClient != null && m_MessageEventHandler != null)
                 {
                     recvMessageCount = 0;
@@ -205,8 +193,6 @@ namespace War.Script
 
                             }
                         }
-
-
                     } while (null != node);
                 }
             }
@@ -221,55 +207,14 @@ namespace War.Script
             }
 
             PackageData packdata = (PackageData)data;
-
-
             try
             {
-                if (packdata.m_keyAction < MAX_ACTION_MODULE_MSG)
-                {
-                    try
-                    {
-
-
-                        //Utils.OnMessageRecv(LuaManager.Instance.luaEnv.rawL,0, packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, packdata.m_sid, packdata.m_Recivedata.item.data, packdata.m_Recivedata.item.nLen);
-                        /*
-                        int mes_Len = packdata.m_Recivedata.item.nLen;
-                        byte[] mes_data = new byte[mes_Len + 5];
-                        mes_data[mes_Len] = 0;
-                        mes_data[mes_Len+1] = 0;
-
-                        Array.Copy(packdata.m_Recivedata.item.data, mes_data, packdata.m_Recivedata.item.nLen);
-                        m_MessageEventHandler(0, packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, packdata.m_sid, mes_data, mes_Len);//, packdata.m_Recivedata.item.nLen);
-                        */
-                        m_MessageEventHandler.OnHandler(packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, packdata.m_sid, packdata.m_Recivedata.item.data,packdata.m_Recivedata.item.nLen);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogWarningFormat("协议进行Action类型解析失败: {0}。将当作普通协议处理。Module={1}, ID={2}", e.Message, packdata.m_keyModule, packdata.m_keyAction);
-
-                    }
-                }
-                else
-                {
-                    /*
-                    int mes_Len = packdata.m_Recivedata.item.nLen;
-                    byte[] mes_data = new byte[mes_Len + 5];
-                    mes_data[mes_Len] = 0;
-                    mes_data[mes_Len + 1] = 0;
-
-                    Array.Copy(packdata.m_Recivedata.item.data, mes_data, packdata.m_Recivedata.item.nLen);
-                    m_MessageEventHandler(0, packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, 0, mes_data, mes_Len);//, packdata.m_Recivedata.item.nLen);
-                    */
-                    //Utils.OnMessageRecv(LuaManager.Instance.luaEnv.rawL, 0, packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, 0, packdata.m_Recivedata.item.data, packdata.m_Recivedata.item.nLen);
-                    m_MessageEventHandler.OnHandler(packdata.m_srcEndPoint, packdata.m_dstEndPoint, packdata.m_keyModule, packdata.m_keyAction, 0, packdata.m_Recivedata.item.data,packdata.m_Recivedata.item.nLen);
-
-                }
+                m_MessageEventHandler.OnHandler(packdata.serverID, packdata.msgID, packdata.recivedata.item.data, packdata.recivedata.item.data.Length);
             }
             catch (LuaException e)
             {
                 Debug.LogError(e.Message);
             }
-
         }
 
         //接收数据
@@ -287,7 +232,7 @@ namespace War.Script
                 node.item = new PackageData();
             }
 
-            node.item.Unpack(buffer, nOffset, size,m_oRecieveMemPool);
+            node.item.Unpack(buffer, nOffset, size, m_oRecieveMemPool);
             node.item.SetClassID(nSocketID);
 
 
@@ -368,8 +313,6 @@ namespace War.Script
 
         }
 
-
-
         //连接
         public void Connect(string ip, int port , int type, LuaFunction callback)
         {
@@ -395,24 +338,13 @@ namespace War.Script
                 {
                     m_LuaConnectCallback.Action<int,int>(errorCode, reason);
                 };
-
             }
-
-
             Debug.Log(" udp==0,tcp==1 当前尝试连接的类型 :" + type + "连接IP" + m_IP + "连接的端口：" + m_Port);
-
-
-
-
             if (0 == m_Port)
             {
                 m_ConnErrorCode = ConnectErrorCode.Lost;
                 return;
             }
-
-   
-
-
             //放入待回收的池子
             if (null != m_CurrentSocketClient)
             {
@@ -430,24 +362,15 @@ namespace War.Script
                 default:
                     m_CurrentSocketClient = new TCPSocketClient();
                     break;
-
-
-
             }
-
             m_eReason = SOCKET_ERROR.SOCKET_ERROR_NON;
             ++m_nCurSocketID;
             m_CurrentSocketClient.SetSink(this);
             m_CurrentSocketClient.SetSocketID(m_nCurSocketID);
-            
-
-
             //连接服务器
             ReConnect(m_IP, m_Port);
 
         }
-
-       
 
         //重新连接
         public void ReConnect(string ip, int port)
@@ -455,6 +378,7 @@ namespace War.Script
             m_ConnErrorCode = ConnectErrorCode.Unknow;
             try
             {
+                Debug.Log("连接");
                 m_CurrentSocketClient.CreateConnection(ip, port);
             }
             catch (System.Net.Sockets.SocketException e)
@@ -464,7 +388,6 @@ namespace War.Script
             }
 
         }
-
         //断开连接
         public void Disconnect()
         {
@@ -529,34 +452,24 @@ namespace War.Script
             }
         }
 
-        public void SendMessage(byte srcEndPoint, byte dstEndPoint, UInt16 keyModule, UInt32 keyAction, byte[] messageBuffer)
+        public void SendMessage(byte serverID, UInt16 msgID, byte[] messageBuffer)
         {
             if (m_CurrentSocketClient != null)
             {
-              
+
                 QueueNode<IPackageData> node = m_oSendRecycle.Pop();
                 if (null == node)
                 {
                     node = new QueueNode<IPackageData>();
                     node.item = new PackageData();
                 }
-                /*
-                else
-                {
-                    Debug.Log("m_oSendRecycle.Pop() 命中");
-                }*/
+      
 
                 PackageData packdata = (PackageData)node.item;
-                packdata.m_srcEndPoint = srcEndPoint;
-                packdata.m_dstEndPoint = dstEndPoint;
-                packdata.m_keyModule = keyModule;
-                packdata.m_keyAction = keyAction;
-                packdata.m_senddata = messageBuffer;
-                packdata.m_sid = 0;
-
+                packdata.serverID = serverID;
+                packdata.msgID = msgID;
+                packdata.sendData = messageBuffer;
                 m_CurrentSocketClient.Send(node);
-
-
             }
         }
 
@@ -597,9 +510,5 @@ namespace War.Script
             }
 
         }
-    }
-
-
-    
-    
+    } 
 }

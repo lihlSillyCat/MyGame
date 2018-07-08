@@ -29,12 +29,6 @@ namespace War.Script
         void Dispose();
 
         //处理消息
-        void OnHandler(byte srcEndpoint,
-          byte dstEndpoint,
-          UInt16 keyModule,
-          UInt32 keyAction,
-          UInt32 sid,
-          byte[] buffer,
-          int nLen);
+        void OnHandler(byte serverID, UInt16 msgID, byte[] buffer, int nLen);
     }
 }

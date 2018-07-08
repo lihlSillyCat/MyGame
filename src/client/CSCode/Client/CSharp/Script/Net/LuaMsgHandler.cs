@@ -20,7 +20,7 @@ using RealStatePtr = System.IntPtr;
 
 namespace War.Script
 {
-   public class LuaMsgHandler:IMsgHandler
+   public class LuaMsgHandler : IMsgHandler
     {
         //lua环境
         private LuaEnv m_luaEnv;
@@ -52,7 +52,7 @@ namespace War.Script
         {
             m_luaEnv = null;
         }
-
+        
         //包处理函数
         public void OnHandler(
           byte srcEndpoint,
@@ -83,6 +83,20 @@ namespace War.Script
 
             LuaAPI.lua_settop(L, err_func - 1);
 
+        }
+
+        public void OnHandler(byte serverID, ushort msgID, byte[] buffer, int nLen)
+        {
+            RealStatePtr L = m_luaEnv.rawL;
+            int err_func = LuaAPI.load_error_func(L, m_errorFuncRef);
+            LuaAPI.lua_getref(L, m_callbackFuncRef);
+            LuaAPI.xlua_pushinteger(L, serverID);
+            LuaAPI.xlua_pushinteger(L, msgID);
+            LuaAPI.xlua_pushlstring(L, buffer, nLen);
+            int __gen_error = LuaAPI.lua_pcall(L, 6, 0, err_func);
+            if (__gen_error != 0)
+                m_luaEnv.ThrowExceptionFromError(err_func - 1);
+            LuaAPI.lua_settop(L, err_func - 1);
         }
     }
 }
