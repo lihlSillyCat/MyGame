@@ -13,6 +13,7 @@ skynet.start(function()
 		nodelay = true,     -- 给外部连接设置  TCP_NODELAY 属性
 	})
 
-    local gate = skynet.newservice("game", gate)
+    local game = skynet.newservice("game", gate)
+    --local test = skynet.newservice("test")
 
 end)
