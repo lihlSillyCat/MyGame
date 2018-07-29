@@ -1,6 +1,9 @@
 local skynet = require "skynet"
 local gateserver = require "snax.gateserver"
 local servicemsg = require "servicemsg"
+local netpack = require "skynet.netpack"
+--local socket = require "skynet.socketdriver"
+local socket = require "skynet.socket"
 
 local handler = {}
 local agent = {} --玩家代理
@@ -43,26 +46,55 @@ end
 
 --消息分发
 function handler.message(fd, msg, sz)
-    print("recv client msg:fd["..fd.."]msg["..msg.."]sz["..sz.."]")
+    print("recv client msg:fd["..fd.."]sz["..sz.."]")
     
-    --消息解包：1byte（服务id）+ 2byte（消息id，Big-Endian 编码）+ 消息体（protobuf序列化的包）
     if sz >= 3 then
         --根据服务ID将消息分发给对应的服务处理
-        local dest, msghead, msgsub = string.byte(msg, 1, 3)
+        local msgunpack = netpack.tostring(msg, sz)
+        local dest, msgsub, msghead = string.byte(msgunpack, 1, 3)
         local msgid = msghead * 256 + msgsub
+
+        print("dstid[" .. dest .. "]msgid[" .. msgid .. "]msg[" .. string.sub(msgunpack, 4, -1) .. "]") 
+
         if service[msgid] then
-            skynet.send(service[msgid], "client", msgid, string.sub(msg, 4, -1), sz - 3)  
+            --skynet.send(service[msgid], "client", msgid, string.sub(msg, 4, -1), sz - 3)  
         else
             skynet.error("unkown msgid["..msgid.."]")
         end
+
+         --测试
+        send(fd, dest + 1, msgid + 1, "hello, i am server")
+
     else
         print("error msg, disconnect client")
-        skynet.send(agent[fd], "lua", "logout")
         gateserver.closeclient(fd)
-        agent[fd] = nil
     end
-end
 
+
+    --[[
+    --消息解包：1byte（服务id）+ 2byte（消息id，Big-Endian 编码）+ 消息体（protobuf序列化的包）
+    if sz >= 3 then
+        local sid = skynet.unpack("B", msg, 1)
+        local msgid = skynet.unpack("<H", msg, 2)
+        local protobuf = string.sub(msg, 4, -1)
+
+        --根据服务ID将消息分发给对应的服务处理
+        if service[msgid] then
+            skynet.send(service[msgid], "client", msgid, protobuf, sz - 3)  
+        else
+            skynet.error("unkown msgid["..msgid.."]")
+        end
+
+        --测试
+        send(fd, sid + 1, msgid + 1, "hello, i am server")
+
+    else
+        print("error msg, disconnect client")
+        gateserver.closeclient(fd)
+    end
+    ]]
+
+end
 
 local CMD = {}
 function CMD.register(source, msgid)
@@ -77,6 +109,18 @@ end
 function handler.command(cmd, source, ...)
     local f = assert(CMD[cmd])
     return f(source, ...)   
+end
+
+-- 发送消息
+function send(fd, sid, msgid, msg)
+    
+    local pksid = string.pack("B", sid)
+    local pkmsgid = string.pack("<H", msgid)
+    local pkmsg = string.pack("z", msg)
+    local binstr = pksid .. pkmsgid .. pkmsg
+    local package = string.pack(">s2", binstr)
+
+    socket.write(fd, package)
 end
 
 gateserver.start(handler)
