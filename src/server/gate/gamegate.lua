@@ -2,8 +2,6 @@ local skynet = require "skynet"
 local gateserver = require "snax.gateserver"
 local servicemsg = require "servicemsg"
 local netpack = require "skynet.netpack"
---local socket = require "skynet.socketdriver"
-local socket = require "skynet.socket"
 
 local handler = {}
 local agent = {} --玩家代理
@@ -56,15 +54,12 @@ function handler.message(fd, msg, sz)
 
         print("dstid[" .. dest .. "]msgid[" .. msgid .. "]msg[" .. string.sub(msgunpack, 4, -1) .. "]") 
 
-        if service[msgid] then
-            --skynet.send(service[msgid], "client", msgid, string.sub(msg, 4, -1), sz - 3)  
+        if service[dest] then
+            skynet.send(service[dest], "lua", msgid, string.sub(msg, 4, -1), sz - 3)  
         else
             skynet.error("unkown msgid["..msgid.."]")
         end
-
-         --测试
-        send(fd, dest + 1, msgid + 1, "hello, i am server")
-
+        
     else
         print("error msg, disconnect client")
         gateserver.closeclient(fd)
@@ -109,18 +104,6 @@ end
 function handler.command(cmd, source, ...)
     local f = assert(CMD[cmd])
     return f(source, ...)   
-end
-
--- 发送消息
-function send(fd, sid, msgid, msg)
-    
-    local pksid = string.pack("B", sid)
-    local pkmsgid = string.pack("<H", msgid)
-    local pkmsg = string.pack("z", msg)
-    local binstr = pksid .. pkmsgid .. pkmsg
-    local package = string.pack(">s2", binstr)
-
-    socket.write(fd, package)
 end
 
 gateserver.start(handler)
