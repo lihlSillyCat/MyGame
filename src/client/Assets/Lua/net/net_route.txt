@@ -24,42 +24,36 @@ local waitHandlersRecord = {}
 --是否正在派发消息
 local isDispatchingMsg = false
 
---小于这个ID的消息都是Action模块的消息
 local MAX_ACTION_MSG_ID = 400
 
-function OnMessage(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+function OnMessage(serverID, msgID, msg, uid, msgLength)
     isDispatchingMsg = true
-    local handlersRecord = msgHandlers[keyAction]
+    local handlersRecord = msgHandlers[msgID]
     if handlersRecord ~= nil then
-        for h,v in pairs(handlersRecord.handlers) do
-            local pbMsg = handlersRecord.msgStruct()
-            pbMsg:ParseFromString(msg)
-            
-            if keyAction < MAX_ACTION_MSG_ID then        --Action消息特殊处理
-                h(sid, pbMsg)
+        for func, _ in pairs(handlersRecord.handlers) do
+            local message_list = require "message_list"
+            local decodeMsg = message_list.decode(msgID, msg)
+            if msgID < MAX_ACTION_MSG_ID then        --Action消息特殊处理
+                func(uid, decodeMsg)
             else
-                h(pbMsg)
+                func(decodeMsg)
             end
         end
     end
-    
     isDispatchingMsg = false
     
     --处理在派发过程中产生的处理器操作
     local nWaiteHandlerCount = table.getn(waitHandlersRecord)
     if nWaiteHandlerCount > 0 then
-        
         for _,data in pairs(waitHandlersRecord) do
             if data[1] == 1 then
-                RegisterSingleMsgHandler(data[2],data[3],data[4])
+                RegisterSingleMsgHandler(data[2],data[3])
             else
-                UnregisterSingleMsgHandler(data[2],data[3],data[4])
+                UnregisterSingleMsgHandler(data[2],data[3])
             end
         end
-        
         waitHandlersRecord = {}
     end
-    
 end
 
 
@@ -70,11 +64,9 @@ function RegisterMsgHandlers(handlers)
     if nil == handlers or 0 == table.getn(handlers) then
         return
     end
-    
-    for _,data in ipairs(handlers) do
-        RegisterSingleMsgHandler(data[1], data[2], data[3])
+    for _, data in ipairs(handlers) do
+        RegisterSingleMsgHandler(data[1], data[2])
     end
-    
 end
 
 --[[注册消息处理器
@@ -84,59 +76,50 @@ function UnregisterMsgHandlers(handlers)
     if nil == handlers or 0 == table.getn(handlers) then
         return
     end
-    
-    for _,data in pairs(handlers) do
+    for _, data in pairs(handlers) do
         UnregisterSingleMsgHandler(data[1], data[2])
     end
-    
 end
 
 --[[注册单个消息处理器
 @param msgID 消息ID
-@param h 处理器(函数)
-@param msgStruct 消息结构
+@param func 处理器(函数)
 ]]
-function RegisterSingleMsgHandler(msgID, h, msgStruct)
-	assert(not (msgID == nil or msgStruct == nil or h == nil), 
+function RegisterSingleMsgHandler(msgID, func)
+	assert(not (msgID == nil or func == nil), 
 		"RegisterSingleMsgHandler >> 错误的参数: msgID="..tostring(msgID))
-       
     --正在派发消息，则先先缓存起来
     if true == isDispatchingMsg then
-        table.insert(waitHandlersRecord, {1, msgID, h, msgStruct})
+        table.insert(waitHandlersRecord, {1, msgID, func})
         return
     end
-    
     if msgHandlers[msgID] == nil then
         msgHandlers[msgID] = {
-            msgStruct = msgStruct,
             handlers = {
-                [h] = true
+                [func] = true
             }
         }
     else
-        msgHandlers[msgID].handlers[h] = true
+        msgHandlers[msgID].handlers[func] = true
     end
-
 end
 
 --[[退订单个消息处理器
 @param msgID 消息ID
-@param h 处理器(函数)
+@param func 处理器(函数)
 ]]
-function UnregisterSingleMsgHandler(msgID, h)
-	assert(not (msgID == nil or h == nil), "UnregisterSingleMsgHandler >> 错误的参数: msgID="..tostring(msgID))
+function UnregisterSingleMsgHandler(msgID, func)
+	assert(not (msgID == nil or func == nil), "UnregisterSingleMsgHandler >> 错误的参数: msgID="..tostring(msgID))
     if nil == msgHandlers[msgID] then
         return
     end
-    
     --正在派发消息，则先先缓存起来
     if true == isDispatchingMsg then
-        table.insert(waitHandlersRecord, {0, msgID, h})
+        table.insert(waitHandlersRecord, {0, msgID, func})
         return
     end
-    
     --删除处理器
-    msgHandlers[msgID].handlers[h] = nil
+    msgHandlers[msgID].handlers[func] = nil
     
     --假如某条消息没有消息处理器了，将其nil
     local hasHandler = false
@@ -150,5 +133,4 @@ function UnregisterSingleMsgHandler(msgID, h)
     if false == hasHandler then
         msgHandlers[msgID] = nil
     end
-    
 end

@@ -1,5 +1,0 @@
-local require = require
-
-module("net_define")
-
-

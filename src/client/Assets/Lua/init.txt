@@ -5,20 +5,27 @@ end
 
 local require = require
 local print = print
+local net = require "net"
+
 require('mobdebug').start('localhost')
 require('mobdebug').coro() --debug coroutine
 module("init")
 
+local sprotoparser = require "sprotoparser"
 print("lua init")
 
 local function Startup()
-	local net = require "net"
-  net.Connect("192.168.2.170", 2048, 1, function()
-      net.SendMessage(1, 2, "werqrtrtwertrrw")
+  local loginmsg = require "loginmsg"
+  local msg = {logintype = 1, account = "605270100", passwd = "123456", cversion = "1"}
+  local test = loginmsg.encode(loginmsg.id.login, msg)
+  net.SendMessage(0, loginmsg.id.login, loginmsg.encode(loginmsg.id.login, msg))
+  net.Connect("192.168.11.112", 2048, 1, function()
+      local loginmsg = require "loginmsg"
+      local msg = {logintype = 1, account = "605270100", passwd = "123456", cversion = "1"}
+      net.SendMessage(0, loginmsg.id.login, loginmsg.encode(loginmsg.id.login))
       print "网络连接成功"
   end)
 end
-
-Startup()
+--Startup()
 
 

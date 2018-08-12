@@ -1,9 +1,0 @@
-local require = require
-local BaseObject = CS.War.Script.BaseObject
-
-module("base_object")
-
-local class = require "class"
-local time_ticker = require "time_ticker"
-local CBaseObject = class(BaseObject, nil, time_ticker)
-return CBaseObject

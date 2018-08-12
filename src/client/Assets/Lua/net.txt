@@ -4,25 +4,23 @@ local string = string
 local print = print
 local setmetatable = setmetatable
 local typeof = typeof
-local event = require "event"
-
 local GameObject = CS.UnityEngine.GameObject
-
 local Net = CS.War.Script.Net
-local BKDRHash = CS.War.Script.Utility.BKDRHash
-local log = require "log"
 
 --C#收到网络包直接调用
-function OnMessageHandle(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+--[[function OnMessageHandle(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
 	--print("OnMessageRecv1 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
 	local net_route = require "net_route"
 	net_route.OnMessage(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
 	event.Trigger(event.NET_MESSAGE_RECIVE_NTF)
     --print("OnMessageRecv2 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
+end--]]
+
+function OnMessageHandle(serverID, msgID, msg, msgLength)
+  
 end
 
 local OnMessageHandleFunc = OnMessageHandle
-
 module("net")
 
 local netObj = GameObject("Net")
@@ -34,8 +32,7 @@ local net_port = ""
 local net_connect_type = 0
 
 local NET_FUNCTION_NAME = {
-	["gateway_pb.TMSG_GATEWAY_PING_REQ"] = {"net_gateway", "S2CPing"},
-	["gateway_pb.TMSG_GATEWAY_PING_RSP"] = {},
+
 }
 
 local NameToIdHashMap = {}
@@ -47,7 +44,8 @@ local function __InitNetPacketMap()
 		local moduleName, className = string.match(k, "([^.]+).([^.]+)")
 		local m = require(moduleName)
 		local class = m[className]
-		if class == nil then		print("class not found: "..className.." in module: "..moduleName)
+		if class == nil then
+		print("class not found: "..className.." in module: "..moduleName)
 		end
 		local classFullName = class.FullName()
 	
@@ -67,9 +65,8 @@ local function __InitNetPacketMap()
 		packetMap[nameHash] = {class, handleFunc}
 	end
 end
-
 function OnMessageReceive(id, msg)
-	local packetInfo = packetMap[id]
+	--[[local packetInfo = packetMap[id]
 	if packetInfo == nil then
 		log.Error("OnMessageReceive ["..id.."] function not found!")
 		return
@@ -78,12 +75,12 @@ function OnMessageReceive(id, msg)
 	local pb = packetInfo[1]()
 	--print("OnMessageReceive", pb.FullName())
 	pb:ParseFromString(msg)
-	packetInfo[2](pb)
+	packetInfo[2](pb)--]]
 end
 
 function OnMessageRecv(packetId, srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
   
-  OnMessageHandleFunc(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
+  --OnMessageHandleFunc(srcEndpoint, dstEndpoint, keyModule, keyAction, sid, msg)
 		
 	--[[
     --print("OnMessageRecv1 :", srcEndpoint, dstEndpoint, keyModule, keyAction,sid)
@@ -94,10 +91,8 @@ function OnMessageRecv(packetId, srcEndpoint, dstEndpoint, keyModule, keyAction,
 	]]
 end
 
-function SendMessage(serverID, msgID, pbInstance, bFilter)
-  local str = "012abcd"
-  local strByte = string.byte(str, 1)
-	netInstance:SendMessage(serverID, msgID, "012abcd")
+function SendMessage(serverID, msgID, msg)
+	netInstance:SendMessage(serverID, msgID, msg)
 	--[[if pbInstance==nil then
 		log.Error("netInstance:SendMessage pbInstance==nil ! serverID:".. serverID.."msgID".. msgID)
 		return
@@ -116,7 +111,7 @@ function Connect(ip, port, connect_type,callback)
 		Disconnect()
 	end
 	
-	event.Trigger(event.NET_CONNECT_EVENT)
+--event.Trigger(event.NET_CONNECT_EVENT)
 	
 	mbConnectCompleted = false
 	
@@ -178,6 +173,3 @@ function DispatchMessage(packetMap, msg)
 end
 
 __InitNetPacketMap()
-netInstance:RegistMessageFunction("OnMessageHandle")
-
-setmetatable(_M, {__index = require "net_define"})
